@@ -566,28 +566,37 @@ export default function BookingPage() {
       {step === 1 && (
         <div className="area-barbeiro animate-in fade-in duration-700 relative w-full">
           
-          <div className="relative flex flex-col items-center justify-center w-full mb-12 mt-16 sm:mt-10">
-            
-            <button 
-              onClick={() => setStep(0)}
-              className={`cursor-pointer absolute left-[-10px] sm:left-[-40px] md:left-[-60px] top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full hover:bg-[#48C0D0] hover:text-black hover:border-[#48C0D0] hover:scale-110 transition-all duration-300 shadow-lg z-10 border ${isDarkMode ? 'bg-slate-900 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`}
-              title="Voltar"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-              </svg>
-            </button>
+          {/* CABEÇALHO RESPONSIVO CORRIGIDO */}
+          <div className="relative w-full mb-10 mt-8 sm:mb-12 sm:mt-10">
+            <div className="flex items-center justify-center w-full relative min-h-[50px] sm:min-h-[60px]">
+              
+              {/* Seta fixada à esquerda sem valores negativos extremos */}
+              <button 
+                onClick={() => setStep(0)} 
+                className={`cursor-pointer absolute left-0 sm:left-2 md:left-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full hover:bg-[#48C0D0] hover:text-black hover:border-[#48C0D0] hover:scale-110 transition-all duration-300 shadow-lg z-10 border ${isDarkMode ? 'bg-slate-900 border-slate-700 text-slate-400' : 'bg-white border-slate-200 text-slate-500'}`} 
+                title="Voltar" 
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+              </button>
 
-            <h2 className={`text-2xl min-[350px]:text-3xl sm:text-5xl font-black text-center uppercase italic tracking-tight drop-shadow-md ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-              Escolha o <span className="text-[#48C0D0]">Profissional</span>
-            </h2>
-            
-            <div className="mt-4 px-5 py-1.5 rounded-full bg-[#48C0D0]/10 border border-[#48C0D0]/30 shadow-[0_0_15px_rgba(72,192,208,0.15)] backdrop-blur-sm">
-              <p className="text-center text-[#48C0D0] font-black text-[10px] sm:text-xs uppercase tracking-[0.2em]">
-                Serviço: {selectedService?.name}
-              </p>
+              {/* Título com px-14 (padding) para criar um escudo invisível contra a seta */}
+              <h2 className={`text-[22px] min-[350px]:text-2xl sm:text-4xl md:text-5xl font-black text-center uppercase italic tracking-tight drop-shadow-md px-14 sm:px-20 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                Escolha o <span className="text-[#48C0D0]">Profissional</span>
+              </h2>
+            </div>
+
+            {/* Badge do serviço centralizada abaixo */}
+            <div className="flex justify-center mt-4 sm:mt-5">
+              <div className="px-5 py-1.5 sm:px-6 sm:py-2 rounded-full bg-[#48C0D0]/10 border border-[#48C0D0]/30 shadow-[0_0_15px_rgba(72,192,208,0.15)] backdrop-blur-sm">
+                <p className="text-center text-[#48C0D0] font-black text-[10px] sm:text-xs uppercase tracking-[0.2em]">
+                  Serviço: {selectedService?.name}
+                </p>
+              </div>
             </div>
           </div>
+          {/* FIM CABEÇALHO RESPONSIVO CORRIGIDO */}
 
           <div className="grid-centrado">
             {barbers.map((barber) => (
