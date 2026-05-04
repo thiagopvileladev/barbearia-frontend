@@ -389,19 +389,22 @@ export default function AdminPage() {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--theme-40); }
       `}</style>
 
-      <header className="flex flex-col lg:flex-row justify-between items-center gap-6 mb-10 w-full relative z-20 shrink-0">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-[var(--theme-main)] to-[#83d9e4]">Club do Rafa</h1>
-        </div>
-        
-        <div className={`flex flex-col sm:flex-row items-center w-full lg:w-auto gap-4 p-2 rounded-2xl sm:rounded-full border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200/80 shadow-sm'}`}>
-          <nav className="flex-1 flex items-center justify-between gap-1 sm:gap-2 px-1 py-1 rounded-full bg-slate-950/20 border border-slate-950/30 mx-2 sm:mx-6">
+      <header className="sticky top-0 z-50 bg-slate-950/20 backdrop-blur-xl border-b border-slate-950/30">
+        <div className="max-w-[1700px] mx-auto px-4 py-3 flex items-center justify-between gap-4 w-full">
+          
+          {/* Logo (shrink-0 impede que ele seja esmagado) */}
+          <h1 className={`shrink-0 text-xl sm:text-2xl font-black ${isDarkMode ? 'text-zinc-50' : 'text-slate-950'}`}>
+            <span className="text-[var(--theme-main)]">CLUB</span> DU RAFA
+          </h1>
+
+          {/* Navegação - Central (flex-1 e w-full forçam a ocupar todo o espaço do meio) */}
+          <nav className="flex-1 w-full flex items-center justify-between gap-1 px-1 py-1 rounded-full bg-slate-950/20 border border-slate-950/30 mx-0 sm:mx-4">
             {['dashboard', 'barbeiros', 'serviços'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setView(tab)}
                 className={`
-                  flex-1 px-1 sm:px-6 py-2.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer
+                  flex-1 w-full px-1 sm:px-6 py-2.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer text-center
                   ${view === tab
                     ? 'bg-[var(--theme-main)] text-[#09090b] shadow-lg shadow-[var(--theme-main)]/20'
                     : `hover:bg-[var(--theme-10)] ${isDarkMode ? 'text-zinc-400 hover:text-zinc-100' : 'text-slate-500 hover:text-slate-900'}`
@@ -412,19 +415,28 @@ export default function AdminPage() {
               </button>
             ))}
           </nav>
-          <div className={`hidden sm:block w-px h-8 ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`}></div>
-          <div className="flex gap-2">
-            <button onClick={() => setIsDarkMode(!isDarkMode)} className={`cursor-pointer flex items-center justify-center w-10 h-10 shrink-0 rounded-full transition-all duration-300 ${isDarkMode ? 'bg-zinc-800 hover:bg-zinc-700 hover:shadow-lg hover:shadow-yellow-400/20' : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:shadow-md'}`}>
-              {isDarkMode ? (
-                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="#FBBF24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="3.5" opacity="0.5" /><line x1="12" y1="2" x2="12" y2="4" /><line x1="12" y1="20" x2="12" y2="22" /><line x1="4.93" y1="4.93" x2="6.34" y2="6.34" /><line x1="17.66" y1="17.66" x2="19.07" y2="19.07" /><line x1="2" y1="12" x2="4" y2="12" /><line x1="20" y1="12" x2="22" y2="12" /><line x1="4.93" y1="19.07" x2="6.34" y2="17.66" /><line x1="17.66" y1="6.34" x2="19.07" y2="4.93" /></svg>
-              ) : (
-                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-              )}
+
+          {/* Ações (DarkMode + Sair) (shrink-0 impede que encolham) */}
+          <div className="shrink-0 flex items-center gap-2">
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={`p-2.5 rounded-full transition-colors ${isDarkMode ? 'bg-zinc-800 text-yellow-400 hover:bg-zinc-700' : 'bg-slate-200 text-amber-600 hover:bg-slate-300'}`}
+            >
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button onClick={handleLogout} className={`cursor-pointer flex items-center justify-center w-10 h-10 shrink-0 rounded-full transition-all duration-300 ${isDarkMode ? 'bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white' : 'bg-red-50 text-red-500 hover:bg-red-500 hover:text-white'}`} title="Sair do Painel">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
+            
+            <button
+              onClick={handleLogout}
+              className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors text-xs font-bold"
+            >
+              <LogOut size={16} />
+              Sair
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex sm:hidden p-2.5 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+            >
+              <LogOut size={18} />
             </button>
           </div>
         </div>
