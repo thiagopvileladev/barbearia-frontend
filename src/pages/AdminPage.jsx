@@ -49,19 +49,29 @@ export default function AdminPage() {
   const [summaryModal, setSummaryModal] = useState({ isOpen: false, type: '', cancelledApps: [] });
   const [cancelModal, setCancelModal] = useState({ isOpen: false, appointment: null });
   
-  // <-- NOVO: Modal de Bloqueio para o Último Item -->
   const [blockModal, setBlockModal] = useState({ isOpen: false, message: '' }); 
 
-  // Configura o Axios para SEMPRE mandar o token se o usuário estiver logado
+  // =========================================================
+  // ATUALIZAÇÃO AUTOMÁTICA (POLLING) SEM PRECISAR DAR F5
+  // =========================================================
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      fetchData();
+      fetchData(); // Busca inicial assim que carrega
+
+      // Cria um cronômetro que busca os dados a cada 15 segundos
+      const intervalId = setInterval(() => {
+        fetchData();
+      }, 15000); 
+
+      // Limpa o cronômetro caso o usuário saia da tela
+      return () => clearInterval(intervalId);
     } else {
       delete axios.defaults.headers.common['Authorization'];
     }
   }, [token]);
 
+  // Relógio do painel que atualiza a cada 30 segundos
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(timer);
@@ -240,13 +250,11 @@ export default function AdminPage() {
     }
   };
 
-  // --- NOVA LÓGICA DE BLOQUEIO ADICIONADA AQUI ---
   const handleAttemptRemove = (type, itemId) => {
     let relatedApps = [];
     let item = null;
 
     if (type === 'barbeiro') {
-      // Bloqueia se for o último barbeiro
       if (barbeiros.length <= 1) {
         setBlockModal({ isOpen: true, message: "Ação negada! O sistema precisa ter pelo menos 1 barbeiro cadastrado para funcionar." });
         return;
@@ -254,7 +262,6 @@ export default function AdminPage() {
       item = barbeiros.find(b => b.id === itemId);
       relatedApps = appointments.filter(app => app.barber?.id === itemId);
     } else if (type === 'servico') {
-      // Bloqueia se for o último serviço
       if (servicos.length <= 1) {
         setBlockModal({ isOpen: true, message: "Ação negada! O sistema precisa ter pelo menos 1 serviço cadastrado para funcionar." });
         return;
@@ -364,7 +371,6 @@ export default function AdminPage() {
           <GoogleLogin onSuccess={handleLoginSuccess} onError={() => alert("Erro ao fazer login com o Google")} theme={isDarkMode ? "filled_black" : "outline"} size="large" shape="pill" width="100%" />
         </div>
 
-        {/* --- POP-UP DE ACESSO NEGADO (E-MAIL INVÁLIDO) --- */}
         <AnimatePresence>
           {authError && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -607,7 +613,6 @@ export default function AdminPage() {
           {view === 'servicos' && (
             <motion.div key="servicos" variants={fadeVariants} initial="initial" animate="animate" exit="exit" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               
-              {/* Botão Novo Serviço */}
               <button onClick={() => openModal('servico')} className={`group min-h-[280px] border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4 transition-all cursor-pointer ${isDarkMode ? 'border-white/10 hover:border-[var(--theme-main)] hover:bg-white/5' : 'border-slate-200 hover:border-[var(--theme-main)] hover:bg-slate-50'}`}>
                 <div className="w-16 h-16 rounded-full bg-[var(--theme-main)] flex items-center justify-center text-[#09090b] group-hover:scale-110 transition-transform">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
@@ -615,7 +620,6 @@ export default function AdminPage() {
                 <span className="text-sm font-black uppercase tracking-widest">Novo Serviço</span>
               </button>
 
-              {/* MENSAGEM SE ESTIVER VAZIO */}
               {servicos.length === 0 && (
                 <div className="flex flex-col items-center justify-center col-span-full py-10 opacity-50">
                   <p className="text-sm font-black uppercase tracking-widest">Nenhum serviço encontrado no banco</p>
@@ -623,11 +627,9 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* LISTA DE SERVIÇOS */}
               {servicos.map(item => (
                 <div key={item.id} className={`group relative p-8 rounded-[32px] border flex flex-col items-center text-center transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 ${cardBg} ${isDarkMode ? 'border-white/10 hover:border-[var(--theme-main)]' : 'border-slate-200 shadow-sm hover:border-[var(--theme-main)]'}`}>
                   
-                  {/* Ícone de Tesoura */}
                   <div className={`w-20 h-20 mb-6 rounded-2xl flex items-center justify-center rotate-3 transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-110 ${isDarkMode ? 'bg-[var(--theme-10)] text-[var(--theme-main)]' : 'bg-slate-100 text-[var(--theme-main)]'}`}>
                     <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                       <circle cx="6" cy="6" r="3"></circle>
@@ -663,7 +665,7 @@ export default function AdminPage() {
         </AnimatePresence>
       </main>
 
-      {/* --- MODAIS DE CADASTRO --- */}
+      {/* --- MODAIS DE CADASTRO E ALERTAS --- */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -698,7 +700,6 @@ export default function AdminPage() {
           </motion.div>
         )}
 
-        {/* Modal de Exclusão Simples */}
         {deleteModal.isOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className={`p-8 rounded-[32px] w-full max-w-xs text-center shadow-2xl border ${isDarkMode ? 'bg-[#09090b] border-white/10' : 'bg-white border-slate-200'}`}>
@@ -715,7 +716,6 @@ export default function AdminPage() {
           </motion.div>
         )}
 
-        {/* Modal de Exclusão em Massa (Aviso de conflito na agenda) */}
         {bulkDeleteModal.isOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className={`p-8 rounded-[32px] w-full max-w-md shadow-2xl border ${isDarkMode ? 'bg-[#09090b] border-white/10' : 'bg-white border-slate-200'}`}>
@@ -746,7 +746,6 @@ export default function AdminPage() {
           </motion.div>
         )}
 
-        {/* Modal de Resumo após Exclusão em Massa */}
         {summaryModal.isOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
              <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className={`p-8 rounded-[32px] w-full max-w-sm text-center shadow-2xl border ${isDarkMode ? 'bg-[#09090b] border-white/10' : 'bg-white border-slate-200'}`}>
@@ -769,7 +768,6 @@ export default function AdminPage() {
           </motion.div>
         )}
 
-        {/* Modal de Confirmação de Cancelamento Individual */}
         {cancelModal.isOpen && (
            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
               <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className={`p-8 rounded-[32px] w-full max-w-xs text-center shadow-2xl border ${isDarkMode ? 'bg-[#09090b] border-white/10' : 'bg-white border-slate-200'}`}>
@@ -786,7 +784,6 @@ export default function AdminPage() {
            </motion.div>
         )}
 
-        {/* Modal de Finalização Automática */}
         {autoConfirmModal.isOpen && (
            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
               <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className={`p-8 rounded-[32px] w-full max-w-sm shadow-2xl border ${isDarkMode ? 'bg-[#09090b] border-white/10' : 'bg-white border-slate-200'}`}>
@@ -808,7 +805,6 @@ export default function AdminPage() {
            </motion.div>
         )}
 
-        {/* <-- NOVO: Modal de Bloqueio (Não pode excluir o último item) --> */}
         {blockModal.isOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className={`p-8 rounded-[32px] w-full max-w-xs text-center shadow-2xl border ${isDarkMode ? 'bg-[#09090b] border-white/10' : 'bg-white border-slate-200'}`}>
