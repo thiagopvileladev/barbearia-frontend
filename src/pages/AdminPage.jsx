@@ -396,7 +396,7 @@ export default function AdminPage() {
         
         <div className={`flex flex-col sm:flex-row items-center w-full lg:w-auto gap-4 p-2 rounded-2xl sm:rounded-full border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200/80 shadow-sm'}`}>
           <nav className="flex w-full sm:w-auto overflow-x-auto custom-scrollbar">
-            {['dashboard', 'barbeiros', 'servicos'].map(tab => (
+            {['dashboard', 'barbeiros', 'serviços'].map(tab => (
               <button key={tab} onClick={() => setView(tab)} className={`flex-1 sm:flex-none px-6 py-3 rounded-xl sm:rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap cursor-pointer ${view === tab ? 'bg-[var(--theme-main)] text-[#09090b] shadow-lg shadow-[var(--theme-main)]/20' : `hover:bg-[var(--theme-10)] ${isDarkMode ? 'text-zinc-400 hover:text-zinc-100' : 'text-slate-500 hover:text-slate-900'}`}`}>
                 {tab}
               </button>
@@ -450,7 +450,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className={`p-6 rounded-[32px] border ${cardBg} ${cardBorder} flex flex-col items-center justify-center flex-1 min-h-[300px]`}>
-                  <h2 className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-70 self-start">Serviços Mais Feitos</h2>
+                  <h2 className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-70 self-start">Serviços Populares</h2>
                   <div className="w-full h-full flex items-center justify-center">
                     {chartData.length === 0 ? (
                        <div className={`flex flex-col items-center justify-center opacity-50 ${isDarkMode ? 'text-zinc-500' : 'text-slate-400'}`}>
@@ -593,8 +593,8 @@ export default function AdminPage() {
           )}
 
           {/* Aba SERVIÇOS */}
-          {view === 'servicos' && (
-            <motion.div key="servicos" variants={fadeVariants} initial="initial" animate="animate" exit="exit" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {view === 'serviços' && (
+            <motion.div key="serviços" variants={fadeVariants} initial="initial" animate="animate" exit="exit" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               
               {/* Botão Novo Serviço */}
               <button onClick={() => openModal('servico')} className={`group min-h-[280px] border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4 transition-all cursor-pointer ${isDarkMode ? 'border-white/10 hover:border-[var(--theme-main)] hover:bg-white/5' : 'border-slate-200 hover:border-[var(--theme-main)] hover:bg-slate-50'}`}>
