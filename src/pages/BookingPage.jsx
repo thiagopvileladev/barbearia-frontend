@@ -249,7 +249,19 @@ export default function BookingPage() {
 
       const status = error.response?.status;
       const errorData = error.response?.data;
+      
+      // Tenta pegar a mensagem exata que o Spring Boot (Java) mandou
+      const mensagemErro = error.response?.data?.message || (typeof errorData === 'string' ? errorData : "");
 
+      // NOVA REGRA: Verifica se é o erro de telefone que criamos no Backend
+      if (mensagemErro.includes("Este número de WhatsApp já está cadastrado no nome de")) {
+         alert("⚠️ BLOQUEADO DE SEGURANÇA:\n\n" + mensagemErro);
+         setBookingError(mensagemErro);
+         if (step === 3) setStep(2); 
+         return; // Interrompe para não mostrar os outros erros
+      }
+
+      // Regras antigas que já existiam
       if (status === 500 || (typeof errorData === 'string' && errorData.includes("Limite atingido"))) {
         setLimitModal(true);
       } else {
