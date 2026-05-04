@@ -395,9 +395,9 @@ export default function AdminPage() {
         </div>
         
         <div className={`flex flex-col sm:flex-row items-center w-full lg:w-auto gap-4 p-2 rounded-2xl sm:rounded-full border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200/80 shadow-sm'}`}>
-          <nav className="flex w-full sm:w-auto overflow-x-auto custom-scrollbar">
+          <nav className="flex w-full sm:w-auto justify-between gap-1 sm:gap-2">
             {['dashboard', 'barbeiros', 'serviços'].map(tab => (
-              <button key={tab} onClick={() => setView(tab)} className={`flex-1 sm:flex-none px-6 py-3 rounded-xl sm:rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap cursor-pointer ${view === tab ? 'bg-[var(--theme-main)] text-[#09090b] shadow-lg shadow-[var(--theme-main)]/20' : `hover:bg-[var(--theme-10)] ${isDarkMode ? 'text-zinc-400 hover:text-zinc-100' : 'text-slate-500 hover:text-slate-900'}`}`}>
+              <button key={tab} onClick={() => setView(tab)} className={`flex-1 sm:flex-none px-2 sm:px-6 py-3 rounded-xl sm:rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider sm:tracking-widest transition-all whitespace-nowrap cursor-pointer ${view === tab ? 'bg-[var(--theme-main)] text-[#09090b] shadow-lg shadow-[var(--theme-main)]/20' : `hover:bg-[var(--theme-10)] ${isDarkMode ? 'text-zinc-400 hover:text-zinc-100' : 'text-slate-500 hover:text-slate-900'}`}`}>
                 {tab}
               </button>
             ))}
