@@ -24,7 +24,7 @@ export default function AdminPage() {
   
   // === SISTEMA DE LOGIN (O CRACHÁ DIGITAL E ERRO DE ACESSO) ===
   const [token, setToken] = useState(localStorage.getItem('adminToken') || null);
-  const [authError, setAuthError] = useState(false); // <-- NOVO: Controle do Pop-up de Erro
+  const [authError, setAuthError] = useState(false); 
 
   const [view, setView] = useState('dashboard');
   const [appointments, setAppointments] = useState([]);
@@ -48,6 +48,9 @@ export default function AdminPage() {
   const [bulkDeleteModal, setBulkDeleteModal] = useState({ isOpen: false, type: '', item: null, relatedApps: [] });
   const [summaryModal, setSummaryModal] = useState({ isOpen: false, type: '', cancelledApps: [] });
   const [cancelModal, setCancelModal] = useState({ isOpen: false, appointment: null });
+  
+  // <-- NOVO: Modal de Bloqueio para o Último Item -->
+  const [blockModal, setBlockModal] = useState({ isOpen: false, message: '' }); 
 
   // Configura o Axios para SEMPRE mandar o token se o usuário estiver logado
   useEffect(() => {
@@ -102,9 +105,8 @@ export default function AdminPage() {
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       if (error.response?.status === 401) {
-        // Se o Java disser que o token expirou ou é de um E-MAIL INVÁLIDO:
-        handleLogout();      // 1. Chuta o usuário para a tela de login
-        setAuthError(true);  // 2. Abre o pop-up bonitinho de "Acesso Negado"
+        handleLogout();      
+        setAuthError(true);  
       }
     }
   };
@@ -238,14 +240,25 @@ export default function AdminPage() {
     }
   };
 
+  // --- NOVA LÓGICA DE BLOQUEIO ADICIONADA AQUI ---
   const handleAttemptRemove = (type, itemId) => {
     let relatedApps = [];
     let item = null;
 
     if (type === 'barbeiro') {
+      // Bloqueia se for o último barbeiro
+      if (barbeiros.length <= 1) {
+        setBlockModal({ isOpen: true, message: "Ação negada! O sistema precisa ter pelo menos 1 barbeiro cadastrado para funcionar." });
+        return;
+      }
       item = barbeiros.find(b => b.id === itemId);
       relatedApps = appointments.filter(app => app.barber?.id === itemId);
     } else if (type === 'servico') {
+      // Bloqueia se for o último serviço
+      if (servicos.length <= 1) {
+        setBlockModal({ isOpen: true, message: "Ação negada! O sistema precisa ter pelo menos 1 serviço cadastrado para funcionar." });
+        return;
+      }
       item = servicos.find(s => s.id === itemId);
       relatedApps = appointments.filter(app => app.service?.id === itemId);
     }
@@ -315,7 +328,6 @@ export default function AdminPage() {
   };
 
   const handleLoginSuccess = (credentialResponse) => {
-    // Esconde qualquer erro anterior ao tentar logar de novo
     setAuthError(false);
     const jwt = credentialResponse.credential;
     localStorage.setItem('adminToken', jwt);
@@ -395,19 +407,9 @@ export default function AdminPage() {
         </div>
         
         <div className={`flex flex-col sm:flex-row items-center w-full lg:w-auto gap-4 p-2 rounded-2xl sm:rounded-full border ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-white border-slate-200/80 shadow-sm'}`}>
-          <nav className="flex-1 flex items-center justify-between gap-1 sm:gap-2 px-1 py-1 rounded-full bg-slate-950/20 border border-slate-950/30 mx-2 sm:mx-6">
-            {['dashboard', 'barbeiros', 'serviços'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setView(tab)}
-                className={`
-                  flex-1 px-1 sm:px-6 py-2.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer
-                  ${view === tab
-                    ? 'bg-[var(--theme-main)] text-[#09090b] shadow-lg shadow-[var(--theme-main)]/20'
-                    : `hover:bg-[var(--theme-10)] ${isDarkMode ? 'text-zinc-400 hover:text-zinc-100' : 'text-slate-500 hover:text-slate-900'}`
-                  }
-                `}
-              >
+          <nav className="flex w-full sm:w-auto overflow-x-auto custom-scrollbar">
+            {['dashboard', 'barbeiros', 'servicos'].map(tab => (
+              <button key={tab} onClick={() => setView(tab)} className={`flex-1 sm:flex-none px-6 py-3 rounded-xl sm:rounded-full text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap cursor-pointer ${view === tab ? 'bg-[var(--theme-main)] text-[#09090b] shadow-lg shadow-[var(--theme-main)]/20' : `hover:bg-[var(--theme-10)] ${isDarkMode ? 'text-zinc-400 hover:text-zinc-100' : 'text-slate-500 hover:text-slate-900'}`}`}>
                 {tab}
               </button>
             ))}
@@ -460,7 +462,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className={`p-6 rounded-[32px] border ${cardBg} ${cardBorder} flex flex-col items-center justify-center flex-1 min-h-[300px]`}>
-                  <h2 className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-70 self-start">Serviços Populares</h2>
+                  <h2 className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-70 self-start">Serviços Mais Feitos</h2>
                   <div className="w-full h-full flex items-center justify-center">
                     {chartData.length === 0 ? (
                        <div className={`flex flex-col items-center justify-center opacity-50 ${isDarkMode ? 'text-zinc-500' : 'text-slate-400'}`}>
@@ -573,7 +575,6 @@ export default function AdminPage() {
           {view === 'barbeiros' && (
             <motion.div key="barbeiros" variants={fadeVariants} initial="initial" animate="animate" exit="exit" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               
-              {/* Botão Novo Barbeiro */}
               <button onClick={() => openModal('barbeiro')} className={`group min-h-[280px] border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4 transition-all cursor-pointer ${isDarkMode ? 'border-white/10 hover:border-[var(--theme-main)] hover:bg-white/5' : 'border-slate-200 hover:border-[var(--theme-main)] hover:bg-slate-50'}`}>
                 <div className="w-16 h-16 rounded-full bg-[var(--theme-main)] flex items-center justify-center text-[#09090b] group-hover:scale-110 transition-transform">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
@@ -603,8 +604,8 @@ export default function AdminPage() {
           )}
 
           {/* Aba SERVIÇOS */}
-          {view === 'serviços' && (
-            <motion.div key="serviços" variants={fadeVariants} initial="initial" animate="animate" exit="exit" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {view === 'servicos' && (
+            <motion.div key="servicos" variants={fadeVariants} initial="initial" animate="animate" exit="exit" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               
               {/* Botão Novo Serviço */}
               <button onClick={() => openModal('servico')} className={`group min-h-[280px] border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4 transition-all cursor-pointer ${isDarkMode ? 'border-white/10 hover:border-[var(--theme-main)] hover:bg-white/5' : 'border-slate-200 hover:border-[var(--theme-main)] hover:bg-slate-50'}`}>
@@ -614,9 +615,19 @@ export default function AdminPage() {
                 <span className="text-sm font-black uppercase tracking-widest">Novo Serviço</span>
               </button>
 
+              {/* MENSAGEM SE ESTIVER VAZIO */}
+              {servicos.length === 0 && (
+                <div className="flex flex-col items-center justify-center col-span-full py-10 opacity-50">
+                  <p className="text-sm font-black uppercase tracking-widest">Nenhum serviço encontrado no banco</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider mt-1">Crie um novo serviço no botão ao lado.</p>
+                </div>
+              )}
+
+              {/* LISTA DE SERVIÇOS */}
               {servicos.map(item => (
                 <div key={item.id} className={`group relative p-8 rounded-[32px] border flex flex-col items-center text-center transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 ${cardBg} ${isDarkMode ? 'border-white/10 hover:border-[var(--theme-main)]' : 'border-slate-200 shadow-sm hover:border-[var(--theme-main)]'}`}>
                   
+                  {/* Ícone de Tesoura */}
                   <div className={`w-20 h-20 mb-6 rounded-2xl flex items-center justify-center rotate-3 transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-110 ${isDarkMode ? 'bg-[var(--theme-10)] text-[var(--theme-main)]' : 'bg-slate-100 text-[var(--theme-main)]'}`}>
                     <svg className="w-10 h-10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                       <circle cx="6" cy="6" r="3"></circle>
@@ -627,10 +638,15 @@ export default function AdminPage() {
                     </svg>
                   </div>
                   
-                  <h3 className={`text-xl font-black uppercase tracking-tight mb-2 ${isDarkMode ? 'text-zinc-100' : 'text-slate-800'}`}>{item.name}</h3>
+                  <h3 className={`text-xl font-black uppercase tracking-tight mb-2 ${isDarkMode ? 'text-zinc-100' : 'text-slate-800'}`}>{item.name || 'Sem Nome'}</h3>
+                  
                   <div className="flex flex-col items-center gap-1 mb-6">
-                    <span className="text-2xl font-black text-[var(--theme-main)]">R$ {item.price.toFixed(2)}</span>
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-zinc-500' : 'text-slate-400'}`}>{item.durationMinutes} Minutos</span>
+                    <span className="text-2xl font-black text-[var(--theme-main)]">
+                      R$ {Number(item.price || 0).toFixed(2)}
+                    </span>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-zinc-500' : 'text-slate-400'}`}>
+                      {item.durationMinutes || 30} Minutos
+                    </span>
                   </div>
                   
                   <div className={`mt-auto pt-5 border-t w-full flex justify-center transition-colors duration-300 ${isDarkMode ? 'border-white/5' : 'border-slate-100'}`}>
@@ -790,6 +806,22 @@ export default function AdminPage() {
                 </div>
               </motion.div>
            </motion.div>
+        )}
+
+        {/* <-- NOVO: Modal de Bloqueio (Não pode excluir o último item) --> */}
+        {blockModal.isOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className={`p-8 rounded-[32px] w-full max-w-xs text-center shadow-2xl border ${isDarkMode ? 'bg-[#09090b] border-white/10' : 'bg-white border-slate-200'}`}>
+              <div className="w-16 h-16 bg-orange-500/10 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <h3 className="text-xl font-black uppercase text-orange-500 mb-2">Ação Bloqueada</h3>
+              <p className={`text-sm mb-6 ${isDarkMode ? 'text-zinc-400' : 'text-slate-500'}`}>{blockModal.message}</p>
+              <button onClick={() => setBlockModal({ isOpen: false, message: '' })} className="w-full bg-[var(--theme-main)] text-[#09090b] px-4 py-3 rounded-xl font-black text-xs uppercase hover:scale-105 transition-transform cursor-pointer">
+                Entendi
+              </button>
+            </motion.div>
+          </motion.div>
         )}
 
       </AnimatePresence>
